@@ -17,11 +17,7 @@ model = YOLO("../Yolo-Weights/yolov8l.pt")
 animal_classes = ["bird", "cat", "dog", "horse", "sheep", "cow", "elephant", 
                   "bear", "deer", "zebra", "giraffe"]
 
-prev_frame_time = 0
-new_frame_time = 0
-
 while True:
-    new_frame_time = time.time()
     success, img = cap.read()
 
     if not success:
@@ -33,23 +29,26 @@ while True:
 
     results = model(img, stream=True)
 
-    animal_detected = False  # Flag to check if any animal is detected
-
     for r in results:
         boxes = r.boxes
         for box in boxes:
+            # Bounding Box
+            x1, y1, x2, y2 = map(int, box.xyxy[0])
+
             # Get class name
             cls = int(box.cls[0])
             class_name = model.names[cls]  # Get class name from model
 
             # Only detect animals
             if class_name in animal_classes:
-                animal_detected = True  # Set flag that an animal is detected
-                break  # Stop checking once any animal is detected
+                # Draw bounding box
+                w, h = x2 - x1, y2 - y1
+                cvzone.cornerRect(img, (x1, y1, w, h), colorR=(0, 255, 0))
 
-    # If any animal is detected, show "Animal detected"
-    if animal_detected:
-        cvzone.putTextRect(img, "Animal Detected", (50, 50), scale=2, thickness=2, colorR=(0, 255, 0))
+                # Display "Animal Detected" inside the bounding box
+                cvzone.putTextRect(img, "Animal Detected", 
+                                   (x1, max(y1 - 10, 30)), 
+                                   scale=1, thickness=1, colorR=(0, 255, 0))
 
     # Show video output
     cv2.imshow("Animal Detection", img)
