@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animal Voice Recognition</title>
+</head>
+
+<body>
+    <h2>Upload Animal Sound (.wav)</h2>
+
+    <input type="file" id="fileInput" accept="audio/wav">
+    <br><br>
+    <audio id="audioPlayer" controls style="display: none;"></audio>
+    <br><br>
+    <button onclick="uploadFile()">Predict Animal</button>
+    <h3 id="predictionResult"></h3>
+
+    <script>
+        function uploadFile() {
+            const fileInput = document.getElementById("fileInput");
+            if (!fileInput.files.length) {
+                alert("Please select a .wav file first!");
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const audioPlayer = document.getElementById("audioPlayer");
+            audioPlayer.src = URL.createObjectURL(file);
+            audioPlayer.style.display = "block";
+
+            const formData = new FormData();
+            formData.append("audio", file);
+
+            fetch("http://127.0.0.1:5004/predict", {  // Ensure Flask runs on port 5004
+                method: "POST",
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log("Response:", data);
+                    if (data.prediction) {
+                        document.getElementById("predictionResult").innerText = "Predicted Animal: " + data.prediction;
+                    } else {
+                        document.getElementById("predictionResult").innerText = "Error: " + data.error;
+                    }
+                })
+                .catch(error => {
+                    console.error("Fetch Error:", error);
+                    document.getElementById("predictionResult").innerText = "Error connecting to server.";
+                });
+        }
+    </script>
+</body>
+
+</html>
