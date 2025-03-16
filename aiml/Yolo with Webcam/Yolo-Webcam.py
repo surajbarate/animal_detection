@@ -7,7 +7,7 @@ import threading
 app = Flask(__name__)
 
 # ✅ Load YOLO Model
-model = YOLO("Yolo-Weights/yolov8l.pt")
+model = YOLO("../Yolo-Weights/yolov8n.pt")
 
 # ✅ Define animal class names from COCO dataset
 animal_classes = ["bird", "cat", "dog", "horse", "sheep", "cow", "elephant", 
