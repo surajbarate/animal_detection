@@ -5,17 +5,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Animal Voice Recognition</title>
+    <!-- Add Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body>
-    <h2>Upload Animal Sound (.wav)</h2>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white shadow-lg rounded-lg p-8 max-w-md w-full">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 text-center">Upload Animal Sound (.wav)</h2>
 
-    <input type="file" id="fileInput" accept="audio/wav">
-    <br><br>
-    <audio id="audioPlayer" controls style="display: none;"></audio>
-    <br><br>
-    <button onclick="uploadFile()">Predict Animal</button>
-    <h3 id="predictionResult"></h3>
+        <!-- File Input -->
+        <div class="mb-6">
+            <input type="file" id="fileInput" accept="audio/wav"
+                class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+        </div>
+
+        <!-- Audio Player -->
+        <div class="mb-6">
+            <audio id="audioPlayer" controls class="w-full" style="display: none;"></audio>
+        </div>
+
+        <!-- Predict Button -->
+        <button onclick="uploadFile()"
+            class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200">
+            Predict Animal
+        </button>
+
+        <!-- Prediction Result -->
+        <h3 id="predictionResult" class="mt-6 text-lg text-gray-700 text-center"></h3>
+    </div>
 
     <script>
         function uploadFile() {

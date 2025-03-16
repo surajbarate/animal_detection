@@ -4,6 +4,7 @@ import Dashboard from "../components/Dashboard";
 import LiveFeed from "../components/LiveFeed";
 import Notifications from "../components/Notifications";
 
+
 const Home = () => {
   const navigate = useNavigate();
   const [video, setVideo] = useState(null);
@@ -53,15 +54,21 @@ const Home = () => {
     }
   };
 
+  const navigateToSoundPage = () => {
+    window.location.href = "http://localhost:5004/sound";
+  }
+
   return (
     <div className="p-4 h-screen flex flex-col bg-gray-100">
       {/* Navigation Buttons */}
       <div className="flex justify-end mb-4 space-x-4">
+
+
         <button
-          onClick={() => navigate("/alerts")}
+          onClick={navigateToSoundPage}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
         >
-          Alerts
+          check animal sound
         </button>
         <button
           onClick={() => navigate("/visualization")}
