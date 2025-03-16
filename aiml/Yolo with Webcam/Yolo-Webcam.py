@@ -4,7 +4,7 @@ import cvzone
 from flask import Flask, Response
 import threading
 
-app = Flask(__name__)
+app = Flask(__name__)  # Corrected from _name_ to __name__
 
 # ✅ Load YOLO Model
 model = YOLO("../Yolo-Weights/yolov8n.pt")
@@ -62,5 +62,5 @@ def set_video(path):
         cap = cv2.VideoCapture(video_path)
     return {"message": "✅ Video path set successfully!"}
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # Corrected from _name_ to __name__
     app.run(host="0.0.0.0", port=5000, debug=True, threaded=True)
