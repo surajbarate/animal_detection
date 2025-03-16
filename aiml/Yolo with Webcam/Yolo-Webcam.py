@@ -1,62 +1,66 @@
 from ultralytics import YOLO
 import cv2
 import cvzone
-import time
+from flask import Flask, Response
+import threading
 
-# Open video or webcam
-cap = cv2.VideoCapture("../Videos/plantandanimal.mp4")  # Use video
+app = Flask(__name__)
 
-# Set frame size
-cap.set(3, 1280)  # Width
-cap.set(4, 720)   # Height
+# ✅ Load YOLO Model
+model = YOLO("Yolo-Weights/yolov8l.pt")
 
-# Load YOLO Model
-model = YOLO("../Yolo-Weights/yolov8l.pt")
-
-# Define animal class names from COCO dataset
+# ✅ Define animal class names from COCO dataset
 animal_classes = ["bird", "cat", "dog", "horse", "sheep", "cow", "elephant", 
                   "bear", "deer", "zebra", "giraffe"]
 
-while True:
-    success, img = cap.read()
+video_path = None
+cap = None
+lock = threading.Lock()  # 🔒 Prevents multi-threading conflicts
 
-    if not success:
-        print("Failed to capture image")
-        break
+def generate_frames():
+    global cap
+    if cap is None or not cap.isOpened():
+        return
 
-    # Resize the image to avoid zooming issues
-    img = cv2.resize(img, (1280, 720))  # Adjust as needed
+    while cap.isOpened():
+        success, img = cap.read()
+        if not success:
+            break
 
-    results = model(img, stream=True)
+        img = cv2.resize(img, (640, 480))  # ✅ Resize for better speed
+        results = model(img, stream=True)
 
-    for r in results:
-        boxes = r.boxes
-        for box in boxes:
-            # Bounding Box
-            x1, y1, x2, y2 = map(int, box.xyxy[0])
+        for r in results:
+            boxes = r.boxes
+            for box in boxes:
+                x1, y1, x2, y2 = map(int, box.xyxy[0])
+                cls = int(box.cls[0])
+                class_name = model.names[cls]  
 
-            # Get class name
-            cls = int(box.cls[0])
-            class_name = model.names[cls]  # Get class name from model
+                if class_name in animal_classes:
+                    cvzone.cornerRect(img, (x1, y1, x2-x1, y2-y1), colorR=(0, 255, 0))
+                    cvzone.putTextRect(img, f"{class_name}", (x1, max(y1 - 10, 30)), 
+                                       scale=1, thickness=1, colorR=(0, 255, 0))
 
-            # Only detect animals
-            if class_name in animal_classes:
-                # Draw bounding box
-                w, h = x2 - x1, y2 - y1
-                cvzone.cornerRect(img, (x1, y1, w, h), colorR=(0, 255, 0))
+        _, buffer = cv2.imencode('.jpg', img)
+        frame = buffer.tobytes()
 
-                # Display "Animal Detected" inside the bounding box
-                cvzone.putTextRect(img, "Animal Detected", 
-                                   (x1, max(y1 - 10, 30)), 
-                                   scale=1, thickness=1, colorR=(0, 255, 0))
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
-    # Show video output
-    cv2.imshow("Animal Detection", img)
+@app.route('/video_feed')
+def video_feed():
+    return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
-    # Exit if 'q' is pressed
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+@app.route('/set_video/<path:path>')
+def set_video(path):
+    global video_path, cap
+    with lock:
+        video_path = path
+        if cap is not None:
+            cap.release()
+        cap = cv2.VideoCapture(video_path)
+    return {"message": "✅ Video path set successfully!"}
 
-# Release resources
-cap.release()
-cv2.destroyAllWindows()
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True, threaded=True)
